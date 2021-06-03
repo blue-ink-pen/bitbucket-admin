@@ -1,8 +1,16 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[31]:
+
+
 import requests
 from atlassian import Bitbucket
 import logging
 import pandas as pd
 import numpy as np
+import os.path
+
 
 logging.basicConfig(filename='bitbucket_connect.log', filemode='w', level=logging.DEBUG)
 
@@ -10,17 +18,38 @@ logging.basicConfig(filename='bitbucket_connect.log', filemode='w', level=loggin
 try:
 
    
-  # Read from command line, username, password, file path  
+  # Read username, password, file path  
   username = input("Username:\n")
+  while len(username) == 0:
+    print("Please input valid username.")
+    username = input("Username:\n")
+
   password = input("Password:\n")
+  while len(password) == 0:
+    print("Please input valid password.")
+    password = input("Password:\n")
+
   filepath = input("Filepath:\n")  
+  while (len(filepath) == 0) or (os.path.isfile(filepath) == False):
+    print("Please input valid file path.")
+    filepath = input("Filepath:\n")  
+
+  bitbucket_url = input("Bitbucket URL in http://<hostname>:port format.\nLeave empty to use default: http://localhost:7990.")  
+  if len(bitbucket_url) == 0:
+    bitbucket_url =  'http://localhost:7990'
     
+    
+  # Create data frame to store project/repo/user/permission from user input.   
+  dfUserInput = pd.read_csv(filepath)
+
+  # Check user input file format.    
+  if len(dfUserInput.columns) != 4:
+    print("Input file must have 4 columns: PROJECT_KEY,REPO_NAME,USER_NAME,USER_PERMISSION")
+    error("Input file must have 4 columns: PROJECT_KEY,REPO_NAME,USER_NAME,USER_PERMISSION")
     
   # Define data frame columns  
   dfColumns = ['PROJECT_KEY','PROJECT_PUBLIC','REPO_NAME','USER_NAME','USER_ACTIVE','USER_PERMISSION']
 
-  # Create data frame to store project/repo/user/permission from user input.   
-  dfUserInput = pd.read_csv(filepath)
     
 
   # Display user input
@@ -35,7 +64,9 @@ try:
     
     
   # Connect to bitbucket
-  bitbucket = Bitbucket(url='http://localhost:7990', username=username, password=password)  
+  print ("Connecting to bitbucket at "+bitbucket_url)
+  bitbucket = Bitbucket(url=bitbucket_url, username=username, password=password)  
+
     
   # Read project list  
   project_list = bitbucket.project_list()
@@ -137,9 +168,24 @@ try:
       print("")
 
 except Exception as e:
+    print(e)
     logging.error(e)
     
 
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
 
 
 
